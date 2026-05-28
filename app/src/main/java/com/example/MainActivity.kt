@@ -32,6 +32,18 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContactPhone
+import androidx.compose.material.icons.filled.Dialpad
+import androidx.compose.material.icons.filled.Sms
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.ui.platform.testTag
+import com.example.ui.components.ActiveCallOverlay
+import com.example.util.ActiveCallState
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,12 +91,66 @@ class MainActivity : FragmentActivity() {
                         )
                     }
 
-                    Scaffold(
-                        modifier = Modifier.fillMaxSize(),
-                        containerColor = if (isShaderEnabled) Color.Transparent else MaterialTheme.colorScheme.background
-                    ) { innerPadding ->
-                        if (authState is AuthState.Authenticated) {
-                            val navController = rememberNavController()
+                    if (authState is AuthState.Authenticated) {
+                        val navController = rememberNavController()
+                        val currentBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentRoute = currentBackStackEntry?.destination?.route
+                        val showBottomBar = currentRoute == "contact_list" || currentRoute?.startsWith("dialer") == true || currentRoute?.startsWith("sms") == true
+                        val currentLanguage by listViewModel.appLanguage.collectAsStateWithLifecycle()
+
+                        Scaffold(
+                            modifier = Modifier.fillMaxSize(),
+                            containerColor = if (isShaderEnabled) Color.Transparent else MaterialTheme.colorScheme.background,
+                            bottomBar = {
+                                if (showBottomBar) {
+                                    NavigationBar(
+                                        containerColor = if (isShaderEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
+                                        modifier = Modifier.testTag("app_bottom_bar")
+                                    ) {
+                                        NavigationBarItem(
+                                            selected = currentRoute == "contact_list",
+                                            onClick = {
+                                                if (currentRoute != "contact_list") {
+                                                    navController.navigate("contact_list") {
+                                                        popUpTo("contact_list") { inclusive = false }
+                                                        launchSingleTop = true
+                                                    }
+                                                }
+                                            },
+                                            icon = { Icon(Icons.Default.ContactPhone, contentDescription = "Contacts") },
+                                            label = { Text(if (themeEnabled) "" else "Contacts") },
+                                            modifier = Modifier.testTag("nav_contacts_tab")
+                                        )
+                                        NavigationBarItem(
+                                            selected = currentRoute?.startsWith("dialer") == true,
+                                            onClick = {
+                                                if (currentRoute?.startsWith("dialer") != true) {
+                                                    navController.navigate("dialer") {
+                                                        launchSingleTop = true
+                                                    }
+                                                }
+                                            },
+                                            icon = { Icon(Icons.Default.Dialpad, contentDescription = "Dialer") },
+                                            label = { Text(if (themeEnabled) "" else "Dialer") },
+                                            modifier = Modifier.testTag("nav_dialer_tab")
+                                        )
+                                        NavigationBarItem(
+                                            selected = currentRoute?.startsWith("sms") == true,
+                                            onClick = {
+                                                if (currentRoute?.startsWith("sms") != true) {
+                                                    navController.navigate("sms") {
+                                                        launchSingleTop = true
+                                                    }
+                                                }
+                                            },
+                                            icon = { Icon(Icons.Default.Sms, contentDescription = "SMS") },
+                                            label = { Text(if (themeEnabled) "" else "SMS") },
+                                            modifier = Modifier.testTag("nav_sms_tab")
+                                        )
+                                    }
+                                }
+                            }
+                        ) { innerPadding ->
                             val repository = remember { DatabaseProvider.getRepository(applicationContext) }
 
                             NavHost(
@@ -109,7 +175,47 @@ class MainActivity : FragmentActivity() {
                                             if (navController.currentDestination?.route == "contact_list") {
                                                 navController.navigate("contact_detail/0")
                                             }
+                                        },
+                                        onNavigateToDialer = { phone ->
+                                            if (navController.currentDestination?.route == "contact_list") {
+                                                navController.navigate("dialer?number=${Uri.encode(phone)}")
+                                            }
+                                        },
+                                        onNavigateToSms = { phone ->
+                                            if (navController.currentDestination?.route == "contact_list") {
+                                                navController.navigate("sms?number=${Uri.encode(phone)}")
+                                            }
                                         }
+                                    )
+                                }
+
+                                composable(
+                                    "dialer?number={number}",
+                                    arguments = listOf(navArgument("number") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                        defaultValue = null
+                                    })
+                                ) { backStackEntry ->
+                                    val number = backStackEntry.arguments?.getString("number")
+                                    PhoneDialerScreen(
+                                        currentLanguage = currentLanguage,
+                                        prefilledNumber = number
+                                    )
+                                }
+
+                                composable(
+                                    "sms?number={number}",
+                                    arguments = listOf(navArgument("number") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                        defaultValue = null
+                                    })
+                                ) { backStackEntry ->
+                                    val number = backStackEntry.arguments?.getString("number")
+                                    SmsMessagingScreen(
+                                        currentLanguage = currentLanguage,
+                                        prefilledNumber = number
                                     )
                                 }
 
@@ -141,7 +247,27 @@ class MainActivity : FragmentActivity() {
                                     )
                                 }
                             }
-                        } else {
+                        }
+
+                        // Ongoing system active call UI overlay
+                        val activeCall by ActiveCallState.activeCall.collectAsStateWithLifecycle()
+                        val callState by ActiveCallState.callState.collectAsStateWithLifecycle()
+                        val callerNumber by ActiveCallState.callerNumber.collectAsStateWithLifecycle()
+
+                        if (activeCall != null && callState != android.telecom.Call.STATE_DISCONNECTED) {
+                            ActiveCallOverlay(
+                                callerNumber = callerNumber,
+                                callState = callState,
+                                onAnswer = { ActiveCallState.answer() },
+                                onHangup = { ActiveCallState.hangup() },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    } else {
+                        Scaffold(
+                            modifier = Modifier.fillMaxSize(),
+                            containerColor = if (isShaderEnabled) Color.Transparent else MaterialTheme.colorScheme.background
+                        ) { innerPadding ->
                             AuthScreen(
                                 viewModel = listViewModel,
                                 modifier = Modifier.padding(innerPadding)

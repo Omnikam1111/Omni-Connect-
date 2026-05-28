@@ -53,6 +53,8 @@ fun ContactListScreen(
     onContactSelect: (Long) -> Unit,
     onNavigateToSettings: () -> Unit,
     onAddContact: () -> Unit,
+    onNavigateToDialer: (String) -> Unit = {},
+    onNavigateToSms: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     com.example.ui.components.SafeContent {
@@ -61,6 +63,8 @@ fun ContactListScreen(
             onContactSelect = onContactSelect,
             onNavigateToSettings = onNavigateToSettings,
             onAddContact = onAddContact,
+            onNavigateToDialer = onNavigateToDialer,
+            onNavigateToSms = onNavigateToSms,
             modifier = modifier
         )
     }
@@ -73,6 +77,8 @@ fun ContactListScreenContent(
     onContactSelect: (Long) -> Unit,
     onNavigateToSettings: () -> Unit,
     onAddContact: () -> Unit,
+    onNavigateToDialer: (String) -> Unit = {},
+    onNavigateToSms: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -706,6 +712,8 @@ fun ContactListScreenContent(
                                     IntentExecutor.executeAction(context, "EMAIL", primaryEmailStr)
                                 }
                             },
+                            onCallClick = onNavigateToDialer,
+                            onSmsClick = onNavigateToSms,
                             contactCardOpacity = contactCardOpacity
                         )
                     }
@@ -1178,6 +1186,8 @@ fun ContactDismissibleRow(
     swipeBackgroundColor: Color = Color(0xFFFF5252),
     onConfigureSocialLink: (com.example.data.entity.CustomAction) -> Unit = {},
     onEmailActionClick: (List<com.example.data.entity.Email>, String) -> Unit = { _, _ -> },
+    onCallClick: (String) -> Unit = {},
+    onSmsClick: (String) -> Unit = {},
     contactCardOpacity: Float = 1.0f
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
@@ -1226,6 +1236,8 @@ fun ContactDismissibleRow(
             onClick = onSelect,
             onConfigureSocialLink = onConfigureSocialLink,
             onEmailActionClick = onEmailActionClick,
+            onCallClick = onCallClick,
+            onSmsClick = onSmsClick,
             contactCardOpacity = contactCardOpacity
         )
     }
@@ -1237,6 +1249,8 @@ fun ContactRowCard(
     onClick: () -> Unit,
     onConfigureSocialLink: (com.example.data.entity.CustomAction) -> Unit = {},
     onEmailActionClick: (List<com.example.data.entity.Email>, String) -> Unit = { _, _ -> },
+    onCallClick: (String) -> Unit = {},
+    onSmsClick: (String) -> Unit = {},
     contactCardOpacity: Float = 1.0f
 ) {
     val context = LocalContext.current
@@ -1401,7 +1415,7 @@ fun ContactRowCard(
                                         .size(36.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
-                                        .clickable { IntentExecutor.executeAction(context, "PHONE_CALL", primaryPhone) }
+                                        .clickable { onCallClick(primaryPhone) }
                                         .testTag("quick_call_${item.contact.id}"),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -1419,7 +1433,7 @@ fun ContactRowCard(
                                         .size(36.dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
-                                        .clickable { IntentExecutor.executeAction(context, "SMS", primaryPhone) }
+                                        .clickable { onSmsClick(primaryPhone) }
                                         .testTag("quick_sms_${item.contact.id}"),
                                     contentAlignment = Alignment.Center
                                 ) {
