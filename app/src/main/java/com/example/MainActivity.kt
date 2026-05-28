@@ -177,13 +177,13 @@ class MainActivity : FragmentActivity() {
                                             }
                                         },
                                         onNavigateToDialer = { phone ->
-                                            if (navController.currentDestination?.route == "contact_list") {
-                                                navController.navigate("dialer?number=${Uri.encode(phone)}")
+                                            navController.navigate("dialer?number=${Uri.encode(phone)}") {
+                                                launchSingleTop = true
                                             }
                                         },
                                         onNavigateToSms = { phone ->
-                                            if (navController.currentDestination?.route == "contact_list") {
-                                                navController.navigate("sms?number=${Uri.encode(phone)}")
+                                            navController.navigate("sms?number=${Uri.encode(phone)}") {
+                                                launchSingleTop = true
                                             }
                                         }
                                     )
@@ -234,7 +234,17 @@ class MainActivity : FragmentActivity() {
                                         onNavigateBack = {
                                             navController.popBackStack()
                                         },
-                                        isShaderEnabled = isShaderEnabled
+                                        isShaderEnabled = isShaderEnabled,
+                                        onNavigateToDialer = { phone ->
+                                            navController.navigate("dialer?number=${Uri.encode(phone)}") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                        onNavigateToSms = { phone ->
+                                            navController.navigate("sms?number=${Uri.encode(phone)}") {
+                                                launchSingleTop = true
+                                            }
+                                        }
                                     )
                                 }
 

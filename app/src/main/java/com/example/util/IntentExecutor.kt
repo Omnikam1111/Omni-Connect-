@@ -74,6 +74,15 @@ object IntentExecutor {
     }
 
     fun openDirections(context: Context, formattedAddress: String) {
+        try {
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = android.content.ClipData.newPlainText("Contact Address", formattedAddress)
+            clipboard.setPrimaryClip(clip)
+            Toast.makeText(context, "Address copied to clipboard!", Toast.LENGTH_SHORT).show()
+        } catch (clipboardEx: Exception) {
+            Log.e(TAG, "Failed to copy to clipboard", clipboardEx)
+        }
+
         val gmapsUri = Uri.parse("google.navigation:q=${Uri.encode(formattedAddress)}")
         val intent = Intent(Intent.ACTION_VIEW, gmapsUri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -89,7 +98,7 @@ object IntentExecutor {
             try {
                 context.startActivity(webIntent)
             } catch (ex: Exception) {
-                Toast.makeText(context, "Unable to launch map utility", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Map utility not found. Address is copied to clipboard!", Toast.LENGTH_LONG).show()
             }
         }
     }

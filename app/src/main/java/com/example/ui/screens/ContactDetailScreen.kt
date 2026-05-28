@@ -64,7 +64,9 @@ fun ContactDetailScreen(
     viewModel: ContactDetailViewModel,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    isShaderEnabled: Boolean = false
+    isShaderEnabled: Boolean = false,
+    onNavigateToDialer: (String) -> Unit = {},
+    onNavigateToSms: (String) -> Unit = {}
 ) {
     com.example.ui.components.SafeContent {
         ContactDetailScreenContent(
@@ -72,7 +74,9 @@ fun ContactDetailScreen(
             viewModel = viewModel,
             onNavigateBack = onNavigateBack,
             modifier = modifier,
-            isShaderEnabled = isShaderEnabled
+            isShaderEnabled = isShaderEnabled,
+            onNavigateToDialer = onNavigateToDialer,
+            onNavigateToSms = onNavigateToSms
         )
     }
 }
@@ -84,7 +88,9 @@ fun ContactDetailScreenContent(
     viewModel: ContactDetailViewModel,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    isShaderEnabled: Boolean = false
+    isShaderEnabled: Boolean = false,
+    onNavigateToDialer: (String) -> Unit = {},
+    onNavigateToSms: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val preferences = remember { com.example.data.SettingsPreferences(context) }
@@ -250,7 +256,7 @@ fun ContactDetailScreenContent(
                     Button(
                         onClick = {
                             if (primaryPhone.isNotEmpty()) {
-                                IntentExecutor.executeAction(context, "PHONE_CALL", primaryPhone)
+                                onNavigateToDialer(primaryPhone)
                             } else {
                                 Toast.makeText(context, if (appLanguage == "de") "Keine Telefonnummer verfügbar" else "No phone number available", Toast.LENGTH_SHORT).show()
                             }
@@ -270,7 +276,7 @@ fun ContactDetailScreenContent(
                     Button(
                         onClick = {
                             if (primaryPhone.isNotEmpty()) {
-                                IntentExecutor.executeAction(context, "SMS", primaryPhone)
+                                onNavigateToSms(primaryPhone)
                             } else {
                                 Toast.makeText(context, if (appLanguage == "de") "Keine Nachrichtendetails hinterlegt" else "No contacts details logged for messages", Toast.LENGTH_SHORT).show()
                             }
