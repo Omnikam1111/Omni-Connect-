@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer accent rings or network nodes -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26c15.46,0 28,12.54 28,28s-12.54,28 -28,28 -28,-12.54 -28,-28 12.54,-28 28,-28M54,24c-16.57,0 -30,13.43 -30,30s13.43,30 30,30 30,-13.43 30,-30 -13.43,-30 -30,-30z"
+        android:fillAlpha="0.25" />
+    <!-- User Head -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,49m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0" />
+    <!-- User Shoulders -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,62c-8.72,0 -21,4.35 -21,13v3h42v-3c0,-8.65 -12.28,-13 -21,-13z" />
+    <!-- Star badge/Node sparkles -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M72,39m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M36,65m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+</vector>
